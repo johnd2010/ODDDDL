@@ -1,4 +1,4 @@
-    function points = bbox2points(bbox)
+    function points = bbox2points(bbox,size_img)
 % BBOX2POINTS Convert a rectangle into a list of points
 % 
 %   points = BBOX2POINTS(rectangle) converts a bounding box
@@ -60,7 +60,11 @@ points(3, 2, :) = bbox(:, 2) + bbox(:, 4);
 % lower-left
 points(4, 1, :) = bbox(:, 1);
 points(4, 2, :) = bbox(:, 2) + bbox(:, 4);
-
+if size_img
+    points(points<=0)=1;
+    points(points(:,1,:)>size_img(1))=size_img(1);
+    points(points(:,2,:)>size_img(2))=size_img(2);
+end
 function checkInput(bbox)
 validateattributes(bbox, ...
     {'int16', 'uint16', 'int32', 'uint32', 'single', 'double'}, ...

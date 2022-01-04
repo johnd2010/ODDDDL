@@ -2,9 +2,9 @@ function rect_negative = get_negative_rectangles(bbox,count,size_img,bbox_dilati
 %GET_NEGATIVE_RECTANGLES Summary of this function goes here
 %   Detailed explanation goes here
 bbox_diluted = dilate_rectangle(bbox,bbox_dilation);
-b = bbox2points(bbox_diluted);
+b = bbox2points(bbox_diluted,[]);
 region_of_interest.negative = poly2mask(b(:,1),b(:,2),size_img(1),size_img(2));
-b = bbox2points(bbox);
+b = bbox2points(bbox,[]);
 region_of_interest.negative = region_of_interest.negative & ~poly2mask(b(:,1),b(:,2),size_img(1),size_img(2));
 [x,y]=find(region_of_interest.negative==1);
 centres = randi(length(x),ceil(1.5*count),1);

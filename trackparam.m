@@ -1,13 +1,3 @@
-
-%% parameters for extracting features
-featpars.gridSpacing = 4;
-featpars.patchSizes = [16];
-featpars.patchSize = 16;
-featpars.numOBins = 16;
-featpars.numSBins = 4;
-featpars.maxImSize = 640;
-featpars.dims = [128 128];
-
 %% parameters of dictionary learning
 dictpars.gamma = 1e-6;
 dictpars.lambda = 0.5;
@@ -27,10 +17,10 @@ trackpars.update = 5;
 trackpars.posnum = 200;
 trackpars.negnum = 200;
 trackpars.updatenum = 100;
-trackpars.nsize = [32 32];
+trackpars.nsize = [32 32];%[64 64];
 trackpars.lengthT = 20;
 trackpars.bbox_dilation = 0.5;
-trackpars.hog_window = 8;
+trackpars.hog_window = 8;%16
 trackpars.cls_err_thresh = 0.75;
 trackpars.rec_err_thresh = 0.35;
 trackpars.search_area = trackpars.bbox_dilation;
@@ -225,42 +215,15 @@ switch (env.dataset)
         trackpars.rec_err_thresh = 0.35;
         trackpars.search_area = 0.5;
         trackpars.search_sum = 400;
-        %     case 'car4'
-        % %         opt = struct('numsample',800,'affsig',[5,5,.05,.00,.001,.001]);
-        % %         featpars.bbox = [245 180 200 150];
-        %
-        %     case 'stone'
-        % %         opt = struct('numsample',800, 'affsig',[6,6,.03,eps,eps,eps]);
-        % %         featpars.bbox = [115 150 43 20];
-        %
-        %     case 'bolt'
-        % %         opt = struct('numsample',800, 'affsig',[6,5,.001,.001,.001,.000]);
-        %         featpars.bbox = [350 195 25 60];
-        %
-        %     case 'girl'
-        %         opt = struct('numsample',800,'affsig',[6,4, 0.013, 0.00, 0.001, .00]);
-        %         featpars.bbox = [319 204 38 150];
-        %
-        %     case 'animal'
-        % %         opt = struct('numsample',800, 'affsig',[22 ,22, 0.03, 0.00, 0.0, .00]);
-        %         featpars.bbox = [350 40 100 70];
-        %
-        %     case 'football'
-        % %         opt = struct('numsample',800, 'affsig',[4,4, 0.02, 0.00, 0.0, .00]);
-        %         featpars.bbox = [330 125 50 50];
-        %
-        %     case 'twinnings'
-        %
-        %         featpars.bbox = [163,192,73,53];
-
-        %     otherwise;  opt = struct('numsample',800, 'affsig',[3,3, 0.03, 0.00, 0.0, .00]);
-        % error(['unknown title ' trackpars.title]);
 end
 
-%% path of the sequences, you can change it to the directory that contains the sequences
-% dataPath = [seq_path trackpars.title '/'];
 
-%% get frame number and resolution
-% files = dir([dataPath '*.jpg']);
-% frameNum = length(files);
+%% parameters for extracting features
+% featpars.gridSpacing = 4;
+% featpars.patchSizes = [16];
+% featpars.patchSize = 16;
+% featpars.numOBins = 16;
+% featpars.numSBins = 4;
+% featpars.maxImSize = 640;
+% featpars.dims = [128 128];
 

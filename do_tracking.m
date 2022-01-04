@@ -3,9 +3,7 @@ function [bb_next, samples, minval] = do_tracking(img, dict, bb_prev, trackpars,
 
 %% global features
 bbox = bb_prev;
-backup.rect = get_positive_rectangles(bbox,trackpars.search_sum,size(img),trackpars.search_area);
-
-
+backup.rect = get_positive_rectangles(bbox,trackpars.search_sum,size(img,1:2),trackpars.search_area);
 
 hog_patch_vec = extract_features_from_patch(img,backup.rect,trackpars);
 

@@ -1,7 +1,6 @@
-function [dict, dictpars, bbox] = init_tracker(img, featpars, dictpars, trackpars)
+function [dict, dictpars] = init_tracker(img,bbox, dictpars, trackpars)
 %
 % p = featpars.bbox;
-bbox = featpars.bbox;
 rect_positive = get_positive_rectangles(bbox,trackpars.posnum,size(img,1:2),trackpars.bbox_dilation);
 rect_negative = get_negative_rectangles(bbox,trackpars.negnum,size(img,1:2),trackpars.bbox_dilation+1);
 if rem(size(rect_positive,1) + size(rect_negative,1),2)~=0

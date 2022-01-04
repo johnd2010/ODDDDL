@@ -1,52 +1,51 @@
 clear; close all;
 warning('off');
 addpath("/home/durable20/Documents/ODDL/tracker_benchmark_v1.0/rstEval");
-% cd ./sampling
-% mex -O interp2.cpp
-% cd ..
+
 %% Environment variables
 env.frame_number = 1;
 env.dataset = "Deer";
 env.color = true;
 env.draw = true;
+env.patch = true;
+% env.patch = false;
 env.data = "/home/durable20/Documents/Data/"+env.dataset ;
 env.gt = env.data+ "/groundtruth_rect.txt";
-% check_folder(env.result);
+env.result = "/home/durable20/Documents/Result/"+env.dataset ;
 env.data = env.data  + "/img/";
-featpars.bbox_full = (get_ground_truth(env,false));
-featpars.bbox = featpars.bbox_full(1,:);
-
-% addpath('sampling');
+%% parameter setting
+trackparam;
 
 %% change the directory of test sequences
+
+featpars.bbox_full = get_ground_truth(env,false);
+featpars.bbox = featpars.bbox_full(1,:);
+bb_prev = featpars.bbox ;
+
+if env.patch
+    patches_bbox = bbox_patch_creator(featpars.bbox,trackpars.nsize,false);
+    bb_prev=patches_bbox.vec;
+    trackpars.search_area = trackpars.search_area*numel(bb_prev);
+end
 s = dir(env.data);
 seq = s(3:end);
 
 %% loop through all sequences
 trackpars.title = seq(1).name;
 
-%% parameter setting
-trackparam;
-
 %% collect training samples
-img = imread(env.data+trackpars.title);
-if size(img,3) == 3 && env.color==false
-    img = rgb2gray(img);
-end
+frame = get_image(env.data+trackpars.title,env.color);
 
-%%?initialize tracker
-[dict, dictpars, bb_prev] = init_tracker(img, featpars, dictpars, trackpars);
+
+%%initialize tracker
+[dict, dictpars,samples] = initialize_tracker_patch(frame,bb_prev,dictpars,trackpars);
 
 drawopt = [];
-samples.feaArr = [];
-samples.label = [];
-result = bb_prev;
-cnt = 0;
-
+result = cell(length(seq),1);
+result{1} = bb_prev;
+% 
 %% draw results
-if env.draw
-    drawopt = draw_result(drawopt, 1, img, featpars.bbox);
-end
+drawopt = draw_result(drawopt, 1, frame, featpars.bbox,[],env.draw);
 
 
 tic;
@@ -55,51 +54,44 @@ update_count =0;
 template_count =0;
 %% do tracking
 file_check="passed";
-try
-    for f = 2 : length(seq)
-        [f  length(seq) ]
-        if exist(env.data+seq(f).name, 'file')
-            frame = imread(env.data+seq(f).name);
-        else
-            error("Image Not Found");
+% try
+for f = 2 : length(seq)
+    [f  length(seq) ]
+    frame = get_image(env.data+seq(f).name,env.color);
+    [bb_next, feats, minval] = do_tracking_patch(frame, dict, bb_prev, trackpars, dictpars);
+
+    [dict,samples]=get_template_patch(frame, bb_next, dict, minval, trackpars,samples,feats);
+    [dict,samples]=update_dict_patch(samples, dictpars, dict,trackpars);
+
+
+    %% draw result
+    drawopt = draw_result(drawopt, f, frame, bb_next,featpars.bbox_full(f,:),env.draw);
+    bb_next_merge=minBoundingBox(bb_next);
+    bb_prev = bb_next;
+    if env.patch
+        patches_bbox = bbox_patch_creator(bb_next_merge,trackpars.nsize,size(bb_next));
+        bb_prev=patches_bbox.vec;
+    
+    %% append new result
+    hold on;
+    rect_on_image(bb_next_merge,"b");
+    ptch_count = size(bb_prev);
+    for i=1:ptch_count(1)
+        for j=1:ptch_count(2)
+            rect_on_image(bb_prev{i,j},"b");
         end
-
-        if size(frame,3) == 3 && env.color==false
-            frame = rgb2gray(frame);
-        end
-
-        [bb_next, feats, minval] = do_tracking(frame, dict, bb_prev, trackpars, dictpars.sparsity );
-
-        if ~isempty(feats)
-            cnt = cnt + 1;
-            samples.feaArr = [samples.feaArr feats.feats];
-            samples.label = [samples.label feats.labels'];
-            [dict.T, dict.TW] = get_template(frame, bb_next, dict.T, dict.TW, minval, trackpars);
-            %             template_count = template_count+1;
-        end
-
-        if ~isempty(samples.feaArr) && mod(size(samples.feaArr,2)/(trackpars.updatenum*2), trackpars.update) == 0 && trackpars.isupdate ~= 0
-            dict = update_dict(samples, dictpars, dict);
-            samples.feaArr = [];
-            samples.label = [];
-            update_count = update_count+1;
-            %                 [f update_count]
-        end
-
-        %% draw result
-        if env.draw
-            drawopt = draw_result(drawopt, f, frame, bb_next,featpars.bbox_full(f,:));
-        end
-
-        %% append new result
-        result = [result; bb_next];
-        bb_prev = bb_next;
     end
-    [aveErrCoverage, aveErrCenter,errCoverage, errCenter] = calcSeqErrRobust_edit(result,featpars.bbox_full);
+    pause(0.01)
+    end
+    result{f} = bb_next;
 
-catch
-    file_check = "failed";
+
 end
+[aveErrCoverage, aveErrCenter,errCoverage, errCenter] = calcSeqErrRobust_edit(cell2mat(result),featpars.bbox_full);
+
+% catch
+%     file_check = "failed";
+% end
 
 %% Save result and calculate fps
 
